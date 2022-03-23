@@ -293,7 +293,15 @@ const guess=async(accuracy, city, temp)=>{
             }
             guessedCity=await findCity(city);
         }
-        return guessedCity;
+        // return guessedCity;
+        console.log("Your game results: ", guessedCity);
+        let guessResult=[{name:guessedCity.name},
+        {actualT:guessedCity.temperature},
+        {guessTemp:guessedCity.guessTemp},
+        {Score:guessedCity.score},
+        {deltaT: Math.abs((guessedCity.temperature-guessedCity.guessTemp).toFixed(2))}]
+        return guessResult;
+
 }
 
 const review=async ()=>{

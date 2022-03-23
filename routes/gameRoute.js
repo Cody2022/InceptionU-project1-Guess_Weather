@@ -112,15 +112,8 @@ gameRouter.get('/guess', async(req,res)=>{
     let temp=Number(req.query.temp);
     let accuracy=Number(req.query.accuracy);
 
-    let guessedCity=await guess(accuracy, city, temp);
-
-    console.log("Your game results: ", guessedCity);
-    let guessResult=[{name:guessedCity.name},
-        {actualT:guessedCity.temperature},
-        {guessTemp:guessedCity.guessTemp},
-        {Score:guessedCity.score},
-        {deltaT: Math.abs((guessedCity.temperature-guessedCity.guessTemp).toFixed(2))}]
-    res.send(guessResult);
+    let guessResult=await guess(accuracy, city, temp);
+    res.send(guessResult)
 })
 
 gameRouter.get('/review', async (req,res)=>{
