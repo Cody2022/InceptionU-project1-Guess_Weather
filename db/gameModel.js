@@ -69,7 +69,7 @@ const cityCreateDoc=async (newCityName)=>{
 const cityFindByName=async (cityToFind)=>{
     let cityFound=await citySet.findOne(cityToFind)
     // console.log("cityFound return value:", cityFound);
-    if (!cityFound){console.log("cannot find"); return false}
+    if (!cityFound){console.log("Cannot find the city in database"); return false}
     else {return cityFound;}
 }
 

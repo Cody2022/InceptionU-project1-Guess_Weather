@@ -54,7 +54,7 @@ gameRouter.get('/update', async(req, res)=>{
 })
 
 
-//--------------------------------------------Play game-------
+//--------------------------------------------Play game-----------------
 
 gameRouter.get('/enter', async(req,res)=>{
     let {geoJson, weatherJson}=await enter();
@@ -72,6 +72,7 @@ gameRouter.get('/checkbox', async (req,res)=>{
     for (city of cityArray){
         cities.push(city.name)
     }
+    console.log(cities)
     nextOperation=`\nIf you want to add more cities into the box: \ncurl "http://localhost:8000/game/add?city={city}"
     \nIf you want to delete city/cities from the box:\ncurl "http://localhost:8000/game/delete?city={city}" `
     res.send(`There are ${cityArray.length} cities in the box. They are:\n${cities}`+nextOperation)
@@ -129,6 +130,6 @@ gameRouter.get('/save',async(req,res)=>{
     let id=req.query.id;
     let savedUserDoc=await saveResult(player, id)
     // console.log("saveUserDoc:", saveUserDoc);
-    res.send(`Hi ${savedUserDoc.user} with id ${savedUserDoc.id}. Your scores ${savedUserDoc.scores} has been saved! Well done!`)
+    res.send(`Hi ${savedUserDoc.user} with id ${savedUserDoc.id}. Your game results "scores: ${savedUserDoc.scores}" has been saved! Well done!`)
 })
 
