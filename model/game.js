@@ -7,11 +7,13 @@ const readlineAsync=require('readline-async');
 const APIkey_weather=process.env.API_KEY;
 // console.log("API key test:", APIkey_weather);
 
-const {createCity,
-       findCityByName,
-       deleteByName,
-       findAll,
-       updateTempByName
+const {cityCreateDoc,
+       cityFindByName,
+       cityDeleteByName,
+       cityFindAll,
+       cityUpdateTByName,
+       userCreateDoc,
+       userUpdateByNameId
         }=require('../db/gameModel');
 
 
@@ -170,35 +172,35 @@ const startGame=(req, res)=>{
 
 // //-------
 const addCity=async(city)=>{
-    let newCity=await createCity({name:city});
+    let newCity=await cityCreateDoc({name:city});
     // console.log("newCity:", newCity);
     return newCity;
 }
 
 const findCity=async(cityName)=>{
-    let city=await findCityByName({name: cityName});
+    let city=await cityFindByName({name: cityName});
     return city;
 }
 const deleteCity=async(cityName)=>{
-    let city=await deleteByName({name: cityName});
+    let city=await cityDeleteByName({name: cityName});
     // console.log("city:", city)
     return city;
 }
 
-const findAllCities=async()=>{
-    let cityArray=await findAll();
+const cityFindAllCities=async()=>{
+    let cityArray=await cityFindAll();
     return cityArray;
 }
 
 const updateCityTemperature=async(name, newTemperature)=>{
-    let cityUpdatedT=await updateTempByName({name:name}, {temperature:newTemperature});
+    let cityUpdatedT=await cityUpdateTByName({name:name}, {temperature:newTemperature});
     // console.log("cityUpdatedT", cityUpdatedT)
     return cityUpdatedT;
 }
 
 // -----------2022.03.19
 const initialize=async ()=>{
-    let cityArray=await findAll();
+    let cityArray=await cityFindAll();
 
     for (city of cityArray){
         let response= await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city.name}&units=metric&appid=${APIkey_weather}`);
@@ -206,7 +208,7 @@ const initialize=async ()=>{
         if (weatherJson.message) {console.log("error init:", weatherJson.message)}
         else{
             // console.log("WeaterhJson results:",weatherJson)
-            let cityUpdatedT=await updateTempByName({name:city.name}, {temperature:weatherJson.main.temp});
+            let cityUpdatedT=await cityUpdateTByName({name:city.name}, {temperature:weatherJson.main.temp});
             // console.log("cityUpdatedT", cityUpdatedT)
         }
     }
@@ -215,14 +217,14 @@ const initialize=async ()=>{
 
 // -----
 const start=async(accuracy)=>{
-    let cityArray=await findAll();
+    let cityArray=await cityFindAll();
     let scores=0;
     let guessRight=[];
     let summary=[];
 
     for (city of cityArray) {
-        let intialScore=await updateTempByName({name:city.name}, {score:0});
-        let intialGuessTemp=await updateTempByName({name:city.name}, {guessTemp:-1000});
+        let intialScore=await cityUpdateTByName({name:city.name}, {score:0});
+        let intialGuessTemp=await cityUpdateTByName({name:city.name}, {guessTemp:-1000});
     }
 
     for (city of cityArray){
@@ -231,15 +233,15 @@ const start=async(accuracy)=>{
 
         if (weatherJson.message) {console.log("error init:", weatherJson.message)}
         else{
-            let cityUpdatedT=await updateTempByName({name:city.name}, {temperature:weatherJson.main.temp});
+            let cityUpdatedT=await cityUpdateTByName({name:city.name}, {temperature:weatherJson.main.temp});
            
-            console.log(`Guess and Enter temperature of ${city.name}:`)    //Assited information for input
+            console.log(`Guess and enter temperature of ${city.name}:`)    //Assited information for input
             let cityTemp=await readlineAsync();
-            let UpdatedT=await updateTempByName({name:city.name}, {guessTemp:Number(cityTemp)});      
+            let UpdatedT=await cityUpdateTByName({name:city.name}, {guessTemp:Number(cityTemp)});      
         }      
-            let cityCompared=await findCityByName({name: city.name});
+            let cityCompared=await cityFindByName({name: city.name});
             if (Math.abs(cityCompared.temperature-cityCompared.guessTemp)<=accuracy){
-                let updatedCity=await updateTempByName({name:city.name}, {score:1});
+                let updatedCity=await cityUpdateTByName({name:city.name}, {score:1});
                 guessRight.push({name:cityCompared.name,actualT:cityCompared.temperature, guessT: cityCompared.guessTemp, deltaT: (cityCompared.temperature-cityCompared.guessTemp)})
                 scores=scores+updatedCity.score;
             }
@@ -248,18 +250,18 @@ const start=async(accuracy)=>{
 }
 //-------
 
-const enter=async()=>{
-    let response=await fetch("https://freegeoip.app/json/").catch(error=>res.status(404).send(`Geo information for your city is not found!`))
-    let responseJson=response.json();
-
-    let cityArray=await findAll();
+const enter=async(player,id)=>{
+    let geoResponse=await fetch("https://freegeoip.app/json/").catch(error=>res.status(404).send(`Geo information for your city is not found!`))
+    let geoJson=await geoResponse.json();
+    
+    let cityArray=await cityFindAll();
     let scores=0;
     let guessRight=[];
     let summary=[];
 
     for (city of cityArray) {
-        let intialScore=await updateTempByName({name:city.name}, {score:0});
-        let intialGuessTemp=await updateTempByName({name:city.name}, {guessTemp:-1000});
+        let intialScore=await cityUpdateTByName({name:city.name}, {score:0});
+        let intialGuessTemp=await cityUpdateTByName({name:city.name}, {guessTemp:-1000});
     }
 
     for (city of cityArray){
@@ -268,44 +270,49 @@ const enter=async()=>{
 
         if (weatherJson.message) {console.log("error init:", weatherJson.message)}
         else{
-            let cityUpdatedT=await updateTempByName({name:city.name}, {temperature:weatherJson.main.temp});
+            let cityUpdatedT=await cityUpdateTByName({name:city.name}, {temperature:weatherJson.main.temp});
         }
     }
-
-    return responseJson;
+    let weatherResponse= await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${geoJson.city}&units=metric&appid=${APIkey_weather}`);
+    let weatherJson=await weatherResponse.json();
+    
+    return {geoJson,weatherJson}
 }
 //---------
 
 const guess=async(accuracy, city, temp)=>{
 
-        let intialScore=await updateTempByName({name:city}, {score:0});
-        let intialGuessTemp=await updateTempByName({name:city}, {guessTemp:temp});
+        let intialScore=await cityUpdateTByName({name:city}, {score:0});
+        let intialGuessTemp=await cityUpdateTByName({name:city}, {guessTemp:temp});
         let guessedCity={};
 
         let response= await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${APIkey_weather}`);
         let weatherJson=await response.json();
         if (weatherJson.message) {console.log("error init:", weatherJson.message)}
         else{
-            let cityUpdatedT=await updateTempByName({name:city}, {temperature:weatherJson.main.temp});
+            let cityUpdatedT=await cityUpdateTByName({name:city}, {temperature:weatherJson.main.temp});
             if (Math.abs(cityUpdatedT.temperature-temp)<=accuracy){
-                updatedScore=await updateTempByName({name:city}, {score:1});
-                console.log("guess function:", guessedCity)
-            }
+                updatedScore=await cityUpdateTByName({name:city}, {score:1});
+                }
             guessedCity=await findCity(city);
+            // console.log(guessdCity)
         }
-        // return guessedCity;
-        console.log("Your game results: ", guessedCity);
-        let guessResult=[{name:guessedCity.name},
-        {actualT:guessedCity.temperature},
-        {guessTemp:guessedCity.guessTemp},
-        {Score:guessedCity.score},
-        {deltaT: Math.abs((guessedCity.temperature-guessedCity.guessTemp).toFixed(2))}]
-        return guessResult;
+        console.log("Your game results: ", !guessedCity.name, typeof guessedCity);
+        if (!guessedCity.name){return "City is not found"}
+        else {
+            let guessResult=[{name:guessedCity.name},
+            {actualT:guessedCity.temperature},
+            {guessTemp:guessedCity.guessTemp},
+            {Score:guessedCity.score},
+            {deltaT: Math.abs((guessedCity.temperature-guessedCity.guessTemp).toFixed(2))}]
+                    
+            return guessResult;
+        }
 
 }
 
 const review=async ()=>{
-    let cityArray=await findAll();
+    let cityArray=await cityFindAll();
     let scores=0;
     let guessRight=[];
     let summary=[];
@@ -319,8 +326,27 @@ const review=async ()=>{
 
 }
 
+const addPlayer=async (player,id)=>{
+    let addedPlayer=await userCreateDoc({user: player,id:id})
+    return addedPlayer;
+}
 
-
+const saveResult=async (player,id)=>{
+    let newPlayer=await addPlayer(player,id);
+    let cityArray=await cityFindAll();
+    let scores=0;
+    let guessRight=[];
+    let summary=[];
+    for (city of cityArray){
+         if (city.score===1){
+             guessRight.push({name:city.name,actualT:city.temperature, guessT: city.guessTemp, deltaT: Math.abs((city.temperature-city.guessTemp).toFixed(2))})
+             scores=scores+city.score;
+            }
+    }
+    let resultSaved=await userUpdateByNameId ({user:player, id:id}, {scores: scores})
+    
+    return resultSaved;
+}
 
 module.exports={weatherOfCity, 
                 geoLocation, 
@@ -330,11 +356,13 @@ module.exports={weatherOfCity,
                 addCity,
                 findCity,
                 deleteCity, 
-                findAllCities,
+                cityFindAllCities,
                 updateCityTemperature,
                 initialize,
                 start,
                 enter,
                 guess,
-                review  
+                review,
+                addPlayer,
+                saveResult  
             };
