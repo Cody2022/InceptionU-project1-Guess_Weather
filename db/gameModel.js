@@ -31,11 +31,9 @@ const userSchema=new mongoose.Schema({
         type: String,
         minLength: 3,
         required: true,
-        // index: true
     },
     id:{
         type: String,
-        // index:true,
         default:000,
     },
     scores:{
@@ -59,6 +57,8 @@ userSchema.index({user:1, id:1},{unique:true});
 const citySet=mongoose.model("citySet", citySchema);
 const users=mongoose.model("users", userSchema);
 
+//---citySet collection
+
 const cityCreateDoc=async (newCityName)=>{
     let result= await citySet.create(newCityName, error=>{
         if(error) {console.log("error @cityCreateDoc:", error)}
@@ -68,14 +68,12 @@ const cityCreateDoc=async (newCityName)=>{
 
 const cityFindByName=async (cityToFind)=>{
     let cityFound=await citySet.findOne(cityToFind)
-    // console.log("cityFound return value:", cityFound);
     if (!cityFound){console.log("Cannot find the city in database"); return false}
     else {return cityFound;}
 }
 
 const cityDeleteByName=async(cityToDelete)=>{
     let cityDeleted=await citySet.deleteOne(cityToDelete);
-    // console.log("city to be deleted:", cityDeleted)
     return cityDeleted;
 }
 
@@ -86,31 +84,27 @@ const cityFindAll=async ()=>{
 
 const cityUpdateTByName=async(city, cityNewtemperature)=>{
     let cityUpdated=await citySet.findOneAndUpdate(city, cityNewtemperature,{new:true});
-    // console.log("cityUpdated", cityUpdated)
     return cityUpdated;
 }
 
 
-//-----------------User collections and document
+//---User collections and document
 
 const userCreateDoc=async (newUser)=>{
     let newUserDoc= await users.create(newUser, error=>{
         if(error) {return error.message}
     })   
-    // console.log("@/userCreateDoc:", error);
     return newUserDoc; 
 }
 
 const userFindByName=async (cityToFind)=>{
     let userFound=await users.findOne(cityToFind)
-    // console.log("cityFound return value:", cityFound);
     if (!userFound){console.log("cannot find"); return false}
     else {return userFound;}
 }
 
 const userDeleteByName=async(cityToDelete)=>{
     let userDeleted=await users.deleteOne(cityToDelete);
-    // console.log("city to be deleted:", cityDeleted)
     return userDeleted;
 }
 
@@ -121,7 +115,6 @@ const userFindAll=async ()=>{
 
 const userUpdateByNameId=async(user, scores)=>{
     let cityUpdated=await users.findOneAndUpdate(user, scores,{new:true});
-    // console.log("cityUpdated", cityUpdated)
     return cityUpdated;
 }
 

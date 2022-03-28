@@ -148,8 +148,12 @@ let geoJson= {
     metro_code: 0
   }
   let weatherJson={
-      city: "Calgary"
+      test: "Calgary"
   }
   
-  let symbol1=Symbol("testSymbol");
-  console.log(symbol1)
+  let newObj={geoJson, weatherJson}
+
+  console.log(newObj)
+
+  console.log({...geoJson,...weatherJson})
+  
