@@ -19,3 +19,5 @@ appRouter.get("/index", (req,res)=>{
     let indexPath=path.join(__dirname,'..','public','index.html');
     res.sendFile(indexPath);
 });
+
+appRouter.get("/check", weatherOfCity);
